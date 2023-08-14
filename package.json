@@ -1,0 +1,13 @@
+{
+    "name": "tianjian-cicd",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "push": "node ./exe.js && git add . && git commit -m 'update' && git push",
+        "build": "node ./build.js"
+    },
+    "author": "",
+    "license": "ISC",
+    "version": "1.0.5"
+}

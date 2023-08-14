@@ -1,0 +1,2 @@
+include:
+  - local: "/build/publish.yml"

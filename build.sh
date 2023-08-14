@@ -1,0 +1,1 @@
+node ./exe.js && git add . && git commit -m 'update' && git push

@@ -1,0 +1,81 @@
+.default_rules:
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_MESSAGE =~ /\[publish\]/
+    - if: $CI_COMMIT_BRANCH == "develop" && $CI_PIPELINE_SOURCE == 'web'
+
+workflow:
+  rules: !reference [.default_rules, rules]
+
+stages:
+  - build
+  - publish
+  - tag
+
+build-code-job:
+  image: node:latest
+  variables:
+    mt: $CI_MERGE_REQUEST_TITLE
+  tags:
+    # - docker
+    - shell
+    # - ssh
+    # - docker_in_docker
+    # - gitlab-org-docker
+  stage: build
+  script:
+    - git --version
+    - echo "$CI_COMMIT_TITLE"
+    - echo "$CI_COMMIT_MESSAGE"
+    - echo "$CI_COMMIT_TAG"
+    - echo "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+    - echo "$CI_MERGE_REQUEST_ID"
+    - echo $CI_MERGE_REQUEST_TITLE
+    - echo $CI_MERGE_REQUEST_LABELS
+    - echo "$CI_MERGE_REQUEST_TITLE"
+    - echo '$CI_MERGE_REQUEST_APPROVED'
+    - echo "$CI_MERGE_REQUEST_LABELS"
+    - echo "$CI_COMMIT_MESSAGE"
+    - echo "$CI_PIPELINE_SOURCE"
+    - echo "$mt"
+    - node ./build.js
+  artifacts:
+    paths:
+      - ./dist
+sdk-publish:
+  image: node:latest
+  tags:
+    # - docker
+    - shell
+    # - ssh
+    # - docker_in_docker
+    # - gitlab-org-docker
+  stage: publish
+  script:
+    - ls
+    - cd ./dist
+    - echo "//registry.npmjs.org/:_authToken=$ci_cd_npm_token" > .npmrc
+    - VERSION=$(npm version patch)
+    - npm publish
+    - echo $VERSION > .version
+  artifacts:
+    paths:
+      - ./dist
+
+add-tag:
+  image: node:latest
+  tags:
+    # - docker
+    - shell
+    # - ssh
+    # - docker_in_docker
+    # - gitlab-org-docker
+  stage: tag
+  script:
+    - cd ./dist
+    - ls
+    - VERSION=$(cat .version)
+    - echo $VERSION
+    - echo $ci_cd_git_token_name
+    - echo $ci_cd_git_token
+    - git remote set-url origin https://$ci_cd_git_token_name:$ci_cd_git_token@git.cbim.org.cn/yutianjian/cicd.git
+    - git tag $VERSION && git push origin $VERSION -o ci.skip
